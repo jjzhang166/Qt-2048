@@ -51,7 +51,6 @@ void GameModel::op(GameOP op){
         return;
     }
     rotate();
-    addRamNum(); //添加一个随意数
     emit finishProcess(&data);
 }
 
@@ -77,18 +76,34 @@ void GameModel::rotate(){
 
 void GameModel::process(){
     //从下往上处理
+    bool isMoved = false;
     for(int i=3; i>=0; i--)
         for(int j=3; j>=0; j--){
-            for(int c=j-1; c>=0; c--)
-                if(matrix[i][j]==0 || matrix[i][j] == matrix[i][c]){
-                    if(matrix[i][j] == matrix[i][c])
-                        data.score += matrix[i][j]*2;
-                    matrix[i][j] += matrix[i][c];
-                    matrix[i][c] = 0;
+            for(int c=j-1; c>=0; c--){
+                if(matrix[i][j]==0){
+                    if(matrix[i][c]!=0){
+                        matrix[i][j] = matrix[i][c];
+                        matrix[i][c] = 0;
+                        isMoved = true;
+                        continue;
+                    }
+                }else{
+                    if(matrix[i][c] != 0){
+                        if(matrix[i][j] == matrix[i][c]){
+                            matrix[i][j] *= 2;
+                            matrix[i][c] = 0;
+                            data.score += matrix[i][j];
+                            isMoved = true;
+                        }
+                        break;
+                    }
                 }
+            }
             if(matrix[i][j] == 2048)
                 emit win(); //如果出现2048 发射信号 通知界面赢了游戏
         }
+    if(isMoved)
+        addRamNum(); //添加一个随意数
 }
 
 void GameModel::addRamNum(){
